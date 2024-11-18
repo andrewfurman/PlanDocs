@@ -9,7 +9,6 @@ from sqlalchemy.orm import sessionmaker
 import os
 import re
 from documents.documents_model import Document, DocumentSection
-from requirements.requirements_model import Requirement
 
 def create_document_sections(document_id):
     # Set up database connection

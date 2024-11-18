@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import json
 import os
-from documents.documents_model import Document, DocumentSection, Requirement
+from documents.documents_model import Document, DocumentSection
 
 def identify_initial_sections(summaries):
     """Group pages into initial sections based on flags."""

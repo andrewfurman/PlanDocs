@@ -4,7 +4,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import joinedload
 from documents.documents_model import Document, DocumentSection
-from requirements.requirements_model import Requirement
 from datetime import datetime
 from flask import jsonify
 from .add_documents_from_source import add_documents_from_source_websites

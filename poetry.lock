@@ -1199,6 +1199,21 @@ socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
+name = "requirements-parser"
+version = "0.11.0"
+description = "This is a small Python module for parsing Pip requirement files."
+optional = false
+python-versions = "<4.0,>=3.8"
+files = [
+    {file = "requirements_parser-0.11.0-py3-none-any.whl", hash = "sha256:50379eb50311834386c2568263ae5225d7b9d0867fb55cf4ecc93959de2c2684"},
+    {file = "requirements_parser-0.11.0.tar.gz", hash = "sha256:35f36dc969d14830bf459803da84f314dc3d17c802592e9e970f63d0359e5920"},
+]
+
+[package.dependencies]
+packaging = ">=23.2"
+types-setuptools = ">=69.1.0"
+
+[[package]]
 name = "sniffio"
 version = "1.3.1"
 description = "Sniff out which async library your code is running under"
@@ -1328,6 +1343,17 @@ slack = ["slack-sdk"]
 telegram = ["requests"]
 
 [[package]]
+name = "types-setuptools"
+version = "75.5.0.20241116"
+description = "Typing stubs for setuptools"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "types-setuptools-75.5.0.20241116.tar.gz", hash = "sha256:b6939ffdbc50ffdc0bcfbf14f7a6de1ddc5510906c1ca2bd62c23646e5798b1a"},
+    {file = "types_setuptools-75.5.0.20241116-py3-none-any.whl", hash = "sha256:1144b2ab8fa986061f963391fdbde16df20582e3cc39c94340e71aa61cc7203f"},
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.12.2"
 description = "Backported and Experimental Type Hints for Python 3.8+"
@@ -1375,4 +1401,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.11.0,<3.12"
-content-hash = "36bb87afec796b125575d13d8c98b8b77ba5daa7677ff44a272ef40f412178d8"
+content-hash = "1a34dcdbca5259557021625da202b8890c493acdb554b8784aff3504dce31432"
