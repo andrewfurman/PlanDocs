@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documents</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    {% include 'header.html' %}
+
+    <div class="w-full p-8">
+        <div class="mx-auto bg-white rounded-lg shadow-md w-full p-6">
+            
+            <!-- Update the button group div -->
+            <div class="flex justify-between items-center py-4 px-2">
+                <h1 class="text-4xl font-bold text-blue-900">📄 Documents</h1>
+                <div class="flex space-x-2"> <!-- Added flex and space-x-2 for horizontal layout -->
+                    <button id="extractTextButton" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                        📑 Extract Text
+                    </button>
+                    <button id="summarizeButton" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        📋 Summarize
+                    </button>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto">
+                
+                <!-- documents table start -->
+                <table class="w-full table-fixed bg-white border border-gray-300">
+                    <thead>
+                        <tr class="bg-blue-900 text-white">
+                            <th class="w-8 p-2">
+                                <input type="checkbox" id="select-all-documents" class="form-checkbox h-4 w-4">
+                            </th>
+                            <th class="w-20 p-2 break-words">Chapter</th>
+                            <th class="w-80 p-2 break-words">Title</th>
+                            <th class="w-72 p-2 break-words">URL</th>
+                            <th class="w-16 p-2 break-words">Pages</th>
+                            <th class="w-16 p-2 break-words">Words</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for document in documents %}
+                        <tr id="document-{{ document.id }}">
+                            <td class="w-8 p-2 text-center">
+                                <input type="checkbox" class="document-checkbox form-checkbox h-4 w-4" id="document-checkbox-{{ document.id }}" value="{{ document.id }}">
+                            </td>
+                            <td class="w-20 p-2 break-words whitespace-normal">
+                                <a href="{{ url_for('documents.view_document', id=document.id) }}" class="text-blue-600 hover:text-blue-800 underline">
+                                    {{ document.chapter }}
+                                </a>
+                            </td>
+                            <td class="w-80 p-2 break-words whitespace-normal">
+                                {{ document.title }}
+                            </td>
+                            <td class="w-72 p-2 break-words whitespace-normal">
+                                <a href="{{ document.url }}" class="text-blue-600 hover:text-blue-800 underline" target="_blank">
+                                    {{ document.url }}
+                                </a>
+                            </td>
+                            <td class="w-16 p-2 break-words whitespace-normal">
+                                {{ document.page_count|default('N/A', true) }}
+                            </td>
+                            <td class="w-16 p-2 break-words whitespace-normal">
+                                {{ '{:,}'.format(document.word_count) if document.word_count else 'N/A' }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+                <!-- documents table end -->
+            </div>
+            
+            <!-- Buttons  -->
+            <div class="mb-4">
+                <button id="addDocsFromSources" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                    🌐 Add Docs from Sources
+                </button>
+                <button id="extractMissingFullText" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded ml-2">
+                    📥 Extract Missing Full Texts
+                </button>
+                <span id="addDocsResult" class="ml-4 text-sm"></span>
+                <span id="extractResult" class="ml-4 text-sm"></span>
+            </div>
+        </div>
+    </div>
+
+<script>        
+    // Initially hide both buttons
+    document.getElementById('summarizeButton').style.display = 'none';
+    document.getElementById('extractTextButton').style.display = 'none';
+
+    // Function to update button visibility
+    function updateButtonVisibility() {
+        const checkedBoxes = document.querySelectorAll('.document-checkbox:checked');
+        const summarizeButton = document.getElementById('summarizeButton');
+        const extractTextButton = document.getElementById('extractTextButton');
+        const display = checkedBoxes.length > 0 ? 'block' : 'none';
+        summarizeButton.style.display = display;
+        extractTextButton.style.display = display;
+    }
+
+    // Add change listener to all document checkboxes
+    document.querySelectorAll('.document-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', updateButtonVisibility);
+    });
+
+    // Update select-all checkbox listener
+    document.getElementById('select-all-documents').addEventListener('change', function() {
+        const isChecked = this.checked;
+        document.querySelectorAll('.document-checkbox').forEach(checkbox => {
+            checkbox.checked = isChecked;
+        });
+        updateButtonVisibility();
+    });
+
+    document.getElementById('extractMissingFullText').addEventListener('click', function() {
+        this.disabled = true;
+        this.textContent = '🔄 Processing...';
+        document.getElementById('extractResult').textContent = '';
+
+        fetch('/documents/extract_missing_full_text', {
+            method: 'POST',
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('extractResult').textContent = data.message;
+            this.textContent = '📥 Extract Missing Full Texts';
+            this.disabled = false;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('extractResult').textContent = 'An error occurred';
+            this.textContent = '📥 Extract Missing Full Texts';
+            this.disabled = false;
+        });
+    });
+
+    document.getElementById('addDocsFromSources').addEventListener('click', function() {
+        this.disabled = true;
+        this.textContent = '🔄 Processing...';
+        document.getElementById('addDocsResult').textContent = '';
+
+        fetch('/documents/add_docs_from_sources', {
+            method: 'POST',
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('addDocsResult').textContent = data.message;
+            this.textContent = '🌐 Add Docs from Sources';
+            this.disabled = false;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('addDocsResult').textContent = 'An error occurred';
+            this.textContent = '🌐 Add Docs from Sources';
+            this.disabled = false;
+        });
+    });
+
+    // Handle Extract Text button click
+    document.getElementById('extractTextButton').addEventListener('click', async function() {
+        // Disable button and show processing state
+        this.disabled = true;
+        let seconds = 0;
+        const timer = setInterval(() => {
+            seconds++;
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            this.textContent = `🔄 Processing... ${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }, 1000);
+
+        // Get all selected document IDs
+        const selectedIds = Array.from(document.querySelectorAll('.document-checkbox:checked'))
+            .map(checkbox => checkbox.value);
+
+        // Create array of promises for parallel execution
+        const requests = selectedIds.map(id => {
+            return fetch(`/documents/extract_full_text/${id}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => ({
+                id: id,
+                ...data
+            }));
+        });
+
+        try {
+            const results = await Promise.all(requests);
+            clearInterval(timer);
+
+            const successCount = results.filter(r => r.success).length;
+            const failureCount = results.length - successCount;
+            let message = `Text extraction complete!\n`;
+            message += `⏱️ Total time: ${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}\n`;
+            message += `✅ Successful: ${successCount}\n`;
+            message += `❌ Failed: ${failureCount}\n\n`;
+            message += results.map(r => `Document ${r.id}: ${r.message}`).join('\n');
+
+            alert(message);
+            window.location.reload();
+        } catch (error) {
+            clearInterval(timer);
+            alert('Error occurred during text extraction: ' + error);
+            window.location.reload();
+        }
+    });
+
+    // Handle summarize button click
+    document.getElementById('summarizeButton').addEventListener('click', async function() {
+        // Disable button and show processing state
+        this.disabled = true;
+        let seconds = 0;
+        const timer = setInterval(() => {
+            seconds++;
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            this.textContent = `🔄 Processing... ${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }, 1000);
+
+        // Get all selected document IDs
+        const selectedIds = Array.from(document.querySelectorAll('.document-checkbox:checked'))
+            .map(checkbox => checkbox.value);
+
+        // Create array of promises for parallel execution
+        const requests = selectedIds.map(id => {
+            return fetch(`/documents/summarize_document/${id}`, {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => ({
+                id: id,
+                ...data
+            }));
+        });
+
+        try {
+            // Execute all requests in parallel
+            const results = await Promise.all(requests);
+
+            // Stop the timer
+            clearInterval(timer);
+
+            // Compile results message
+            const successCount = results.filter(r => r.success).length;
+            const failureCount = results.length - successCount;
+            let message = `Summarization complete!\n`;
+            message += `⏱️ Total time: ${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}\n`;
+            message += `✅ Successful: ${successCount}\n`;
+            message += `❌ Failed: ${failureCount}\n\n`;
+            message += results.map(r => `Document ${r.id}: ${r.message}`).join('\n');
+
+            alert(message);
+            // Refresh the page after clicking OK
+            window.location.reload();
+        } catch (error) {
+            // Stop the timer
+            clearInterval(timer);
+            alert('Error occurred during summarization: ' + error);
+            // Refresh the page after clicking OK
+            window.location.reload();
+        }
+    });
+</script>
+    
+</body>
+</html>

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Include Axios in the head section -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    {% include 'header.html' %}
+
+    <div class="w-full p-8">
+        <div class="mx-auto bg-white rounded-lg shadow-md w-full p-6">
+            <h1 class="text-4xl font-bold text-blue-900 mb-6">View Document</h1>    
+            <!-- Document Details -->
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold text-blue-800">📋 Document Summary</h2>
+                    <button id="summarizeDocumentBtn" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded">
+                        📋 Summarize Document
+                    </button>
+                </div>
+                <div id="summarizeStatus" class="text-sm mb-2"></div>
+                
+                <!-- Document Details Table -->
+                <!-- Replace the existing Document Details table with this updated version -->
+                <table class="w-full border-collapse border border-gray-300">
+                    <tr>
+                        <th class="border border-gray-300 p-2 bg-gray-100">ID</th>
+                        <td class="border border-gray-300 p-2">{{ document.id }}</td>
+                    </tr>
+                    <tr>
+                        <th class="border border-gray-300 p-2 bg-gray-100">Title</th>
+                        <td class="border border-gray-300 p-2">{{ document.title }}</td>
+                    </tr>
+                    <tr>
+                        <th class="border border-gray-300 p-2 bg-gray-100">Author</th>
+                        <td class="border border-gray-300 p-2">{{ document.author }}</td>
+                    </tr>
+                    <tr>
+                        <th class="border border-gray-300 p-2 bg-gray-100">URL</th>
+                        <td class="border border-gray-300 p-2">
+                            <a href="{{ document.url }}" class="text-blue-600 hover:text-blue-800 underline" target="_blank">
+                                {{ document.url }}
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="border border-gray-300 p-2 bg-gray-100">Summary</th>
+                        <td class="border border-gray-300 p-2" id="summary-content"></td>
+                    </tr>
+                    <tr>
+                        <th class="border border-gray-300 p-2 bg-gray-100">Extended Summary</th>
+                        <td class="border border-gray-300 p-2" id="extended-summary-content"></td>
+                    </tr>
+                    <tr>
+                        <th class="border border-gray-300 p-2 bg-gray-100">Table of Contents</th>
+                        <td class="border border-gray-300 p-2" id="toc-content">
+                    </td>
+                    <tr>
+                        <th class="border border-gray-300 p-2 bg-gray-100">Compressed Document</th>
+                        <td class="px-4 py-2">
+                            <div class="h-[600px] overflow-y-auto">
+                                <pre class="whitespace-pre-wrap break-words max-w-4xl overflow-x-auto">
+                                    <code class="language-json">{{ document.compressed_document }}</code>
+                                </pre>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="border border-gray-300 p-2 bg-gray-100">Chapter</th>
+                        <td class="border border-gray-300 p-2">{{ document.chapter }}</td>
+                    </tr>
+                    <tr>
+                        <th class="border border-gray-300 p-2 bg-gray-100">Word Count</th>
+                        <td class="border border-gray-300 p-2">{{ document.word_count or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <th class="border border-gray-300 p-2 bg-gray-100">Page Count</th>
+                        <td class="border border-gray-300 p-2">{{ document.page_count or 'N/A' }}</td>
+                    </tr>
+                    <tr>
+                        <th class="border border-gray-300 p-2 bg-gray-100">Created Date</th>
+                        <td class="border border-gray-300 p-2">{{ document.created_date }}</td>
+                    </tr>
+                    <tr>
+                        <th class="border border-gray-300 p-2 bg-gray-100">Updated Date</th>
+                        <td class="border border-gray-300 p-2">{{ document.updated_date }}</td>
+                    </tr>
+                </table>
+                <!-- Document Details Table END -->
+                
+            </div>
+
+            <!-- Requirements Table -->
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold text-blue-800">✅ Requirements</h2>
+                    <div>
+                        <button id="extractRequirementsBtn" class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
+                            ✨ Extract Requirements
+                        </button>
+                        <span id="requirementsStatus" class="ml-2 text-sm"></span>
+                    </div>
+                </div>
+                <table class="w-full border-collapse border border-gray-300">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border border-gray-300 p-2">ID</th>
+                            <th class="border border-gray-300 p-2">Section ID</th>
+                            <th class="border border-gray-300 p-2">Section Title</th>
+                            <th class="border border-gray-300 p-2">Description</th>
+                            <th class="border border-gray-300 p-2">Workstream</th>
+                            <th class="border border-gray-300 p-2">Page Number</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for section in document.sections %}
+                            {% for requirement in section.requirements %}
+                            <tr>
+                                <td class="border border-gray-300 p-2">{{ requirement.id }}</td>
+                                <td class="border border-gray-300 p-2">{{ requirement.section_id }}</td>
+                                <td class="border border-gray-300 p-2">{{ requirement.section_title }}</td>
+                                <td class="border border-gray-300 p-2">
+                                    <div class="overflow-auto h-20">
+                                        <pre class="text-xs whitespace-pre-wrap break-words overflow-wrap-anywhere max-w-xs">{{ requirement.requirement_description }}</pre>
+                                    </div>
+                                </td>
+                                <td class="border border-gray-300 p-2">{{ requirement.workstream }}</td>
+                                <td class="border border-gray-300 p-2">{{ requirement.page_number }}</td>
+                            </tr>
+                            {% endfor %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Document Sections -->
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold text-blue-800">✂️ Document Sections</h2>
+                </div>
+                <table class="w-full border-collapse border border-gray-300">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border border-gray-300 p-2 w-24 text-center">Start Page</th>
+                            <th class="border border-gray-300 p-2 w-24 text-center">End Page</th>
+                            <th class="border border-gray-300 p-2">Document Text</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for section in document.sections %}
+                        <tr>
+                            <td class="border border-gray-300 p-2 text-center">{{ section.start_page }}</td>
+                            <td class="border border-gray-300 p-2 text-center">{{ section.end_page }}</td>
+                            <td class="border border-gray-300 p-2 w-full">
+                                <div class="overflow-auto h-20">
+                                    <pre class="text-xs whitespace-pre-wrap break-words overflow-wrap-anywhere">{{ section.document_text }}</pre>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Full Contents -->
+
+            <div>
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold text-blue-800">📑 Full Contents</h2>
+                    <button id="extractFullTextBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        📑 Extract Full Document Text
+                    </button>
+                </div>
+                <div id="extractStatus" class="text-sm mb-2"></div>
+                <div class="border border-gray-300 p-2 h-64 overflow-auto">
+                    <pre class="text-xs">{{ document.full_contents }}</pre>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    
+    <script>
+
+    document.getElementById('extractRequirementsBtn').addEventListener('click', function() {
+            this.disabled = true;
+            this.textContent = '🔄 Processing...';
+            document.getElementById('requirementsStatus').textContent = '';
+
+            axios.post('/requirements/create_requirements_for_document/{{ document.id }}')
+                .then(response => {
+                    if (response.data.success) {
+                        document.getElementById('requirementsStatus').textContent = response.data.message;
+                        // Optionally, you can reload the page to show the new requirements
+                        location.reload();
+                    } else {
+                        document.getElementById('requirementsStatus').textContent = 'Error: ' + response.data.message;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('requirementsStatus').textContent = 'An error occurred';
+                })
+                .finally(() => {
+                    this.disabled = false;
+                    this.textContent = '✨ Extract Requirements';
+                });
+        });
+
+        document.getElementById('extractFullTextBtn').addEventListener('click', function() {
+            this.disabled = true;
+            this.textContent = '🔄 Extracting...';
+            document.getElementById('extractStatus').textContent = '';
+
+            axios.post('/documents/extract_full_text/{{ document.id }}')
+                .then(response => {
+                    if (response.data.success) {
+                        document.getElementById('extractStatus').textContent = response.data.message;
+                        // Reload the page to show the updated full text
+                        location.reload();
+                    } else {
+                        document.getElementById('extractStatus').textContent = 'Error: ' + response.data.message;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('extractStatus').textContent = 'An error occurred';
+                })
+                .finally(() => {
+                    this.disabled = false;
+                    this.textContent = '📑 Extract Full Document Text';
+                });
+        });
+
+        document.getElementById('summarizeDocumentBtn').addEventListener('click', function() {
+    this.disabled = true;
+    document.getElementById('summarizeStatus').textContent = '';
+
+    let startTime = Date.now();
+    let buttonText = this.textContent;
+
+    function formatTime(ms) {
+        let seconds = Math.floor(ms / 1000);
+        let minutes = Math.floor(seconds / 60);
+        seconds = seconds % 60;
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    let intervalId = setInterval(() => {
+        let elapsedTime = Date.now() - startTime;
+        this.textContent = `🔄 Summarizing for ${formatTime(elapsedTime)}`;
+    }, 1000);
+
+    axios.post('/documents/summarize_document/{{ document.id }}')
+        .then(response => {
+            if (response.data.success) {
+                document.getElementById('summarizeStatus').textContent = response.data.message;
+                location.reload();
+            } else {
+                document.getElementById('summarizeStatus').textContent = 'Error: ' + response.data.message;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            if (error.response) {
+                console.error('Response data:', error.response.data);
+                console.error('Response status:', error.response.status);
+                document.getElementById('summarizeStatus').textContent = `Error ${error.response.status}: ${JSON.stringify(error.response.data)}`;
+            } else if (error.request) {
+                console.error('Request:', error.request);
+                document.getElementById('summarizeStatus').textContent = 'No response received from server';
+            } else {
+                console.error('Error message:', error.message);
+                document.getElementById('summarizeStatus').textContent = 'Error: ' + error.message;
+            }
+        })
+        .finally(() => {
+            clearInterval(intervalId);
+            this.disabled = false;
+            this.textContent = buttonText;
+        });
+});
+
+    // Format markdown content when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Format Summary
+        const summaryContent = `{{ document.summary|safe }}`;
+        document.getElementById('summary-content').innerHTML = formatMarkdown(summaryContent);
+        // Format Extended Summary
+        const extendedSummaryContent = `{{ document.extended_summary|safe }}`;
+        document.getElementById('extended-summary-content').innerHTML = formatMarkdown(extendedSummaryContent);
+        // Format Table of Contents
+        const tocContent = `{{ document.table_of_contents|safe }}`;
+        document.getElementById('toc-content').innerHTML = formatMarkdown(tocContent);
+    });
+    </script>
+</body>
+</html>
